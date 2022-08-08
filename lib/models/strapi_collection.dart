@@ -11,12 +11,12 @@ class StrapiCollection<T> {
 
   factory StrapiCollection.fromJson(
     Map<String, dynamic> json,
-    T Function(Map<String, dynamic> json) fromJsonBuilder,
+    T Function(Map<String, dynamic> json) converter,
   ) {
     return StrapiCollection(
       data: List.from(
         json["data"].map(
-          (item) => StrapiDocument.fromJson(item, fromJsonBuilder),
+          (item) => StrapiDocument.fromJson(item, converter),
         ),
       ),
       meta: _StrapiMeta.fromJson(

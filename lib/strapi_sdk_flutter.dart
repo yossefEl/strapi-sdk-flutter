@@ -9,9 +9,6 @@ import 'models/strapi_configuration.dart';
 import 'models/strapi_query.dart';
 import 'package:http/http.dart' as http;
 
-/// A Calculator.
-///
-
 class StrAPI {
   StrAPI._(String endpoint, String? apiToken, {StrapiConfirgutation? confirgutation}) {
     _endpoint = endpoint;
@@ -25,15 +22,15 @@ class StrAPI {
     return _strapi;
   }
 
-  void init({required String endpoint, String? apiToken, StrapiConfirgutation? confirgutation}) {
+  static void init({required String endpoint, String? apiToken, StrapiConfirgutation? confirgutation}) {
     assert(endpoint != '');
     _endpoint = endpoint;
     _apiToken = apiToken;
     _strapi = StrAPI._(_endpoint, apiToken, confirgutation: confirgutation);
   }
 
-  late String _endpoint;
-  String? _apiToken;
+  static late String _endpoint;
+  static String? _apiToken;
   StrapiConfirgutation _confirgutation = StrapiConfirgutation();
   StrapiQuery query = StrapiQuery.instance();
   StrapiError? _error;
@@ -110,7 +107,7 @@ class StrAPI {
     return null;
   }
 
-  // find One and ask for document id
+  // find One
   Future<T?> findOne<T>(collection,
       {String? documentId, required T Function(Map<String, dynamic> json) converter}) async {
     final Uri url = __getEndpoint(collection, documentId: documentId);
@@ -194,7 +191,7 @@ class StrAPI {
     return false;
   }
 
-  // await strapi.login({ identifier: "", password: "" });
+  // login
   Future<bool> login({required String identifier, required String password}) async {
     final Uri url = Uri.parse('$_endpoint/auth/local');
     final response = await http.post(
@@ -217,7 +214,7 @@ class StrAPI {
     return false;
   }
 
-  // await strapi.forgotPassword({ email: "" });
+  // forgotPassword
   Future<bool> forgotPassword({required String email}) async {
     final Uri url = Uri.parse('$_endpoint/auth/forgot-password');
     final response = await http.post(
@@ -234,7 +231,7 @@ class StrAPI {
     return false;
   }
 
-  // await strapi.resetPassword({code: "", password: "",passwordConfirmation: "",});
+  // resetPassword
   Future<bool> resetPassword(
       {required String code,
       required String password,
@@ -256,12 +253,12 @@ class StrAPI {
     return false;
   }
 
-  // sendEmailConfirmation(data)
+  // sendEmailConfirmation
   Future<bool> sendEmailConfirmation(
       {required String email, required String confirmationUrl}) async {
     final Uri url = Uri.parse('$_endpoint/auth/email-confirmatio');
     final response = await http.post(
-      url,
+      url, 
       body: json.encode({
         'email': email,
       }),
@@ -274,20 +271,20 @@ class StrAPI {
     return false;
   }
 
-  // getProviderAuthenticationUrl(provider)
+  // getProviderAuthenticationUrl
 
   String getProviderAuthenticationUrl({required String provider}) {
     return '$_endpoint/connect/$provider';
   }
 
-  // strapi.logout();
+  //logout
   Future<bool> logout() async {
     await AuthStorage.instance.deleteToken();
     _user = null;
     return true;
   }
 
-  // await strapi.fetchUser()
+  // fetchUser
   Future<Map<String, dynamic>?>? fetchUser() async {
     final Uri url = Uri.parse('$_endpoint/auth/me');
     final response = await http.get(
@@ -303,7 +300,7 @@ class StrAPI {
     return null;
   }
 
-  // strapi.getToken();
+  //getToken
   Future<String?> getToken() async {
     return await AuthStorage.instance.getToken();
   }
@@ -318,7 +315,7 @@ class StrAPI {
     }
   }
 
-  // strapi.removeToken();
+  //removeToken
   Future<bool> removeToken() async {
     try {
       await AuthStorage.instance.deleteToken();

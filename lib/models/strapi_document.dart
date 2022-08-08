@@ -17,7 +17,7 @@ class StrapiDocument<T> {
   T? model;
 
   factory StrapiDocument.fromJson(
-          Map<String, dynamic> json, Function(Map<String, dynamic> json) serializer) =>
+          Map<String, dynamic> json, Function(Map<String, dynamic> json) converter) =>
       StrapiDocument(
         id: json["id"],
         attributes: json["attributes"],
@@ -25,7 +25,7 @@ class StrapiDocument<T> {
         updatedAt: DateTime.parse(json['attributes']['updatedAt']),
         publishedAt: DateTime.parse(json['attributes']['publishedAt']),
         locale: json['attributes'].containsKey('locale') ? json['attributes']['locale'] : null,
-        model: serializer(json),
+        model: converter(json),
       );
 
   Map<String, dynamic> toJson() => {

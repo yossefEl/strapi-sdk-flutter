@@ -10,6 +10,9 @@ extension Operation on Map {
 }
 
 class StrapiFilter {
+  StrapiFilter(){
+    _filters= const [];
+  };
   StrapiFilter.instance() {
     _filters = const {};
   }

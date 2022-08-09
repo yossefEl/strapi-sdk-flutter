@@ -5,6 +5,7 @@ import 'strapi_filter.dart';
 
 class StrapiQuery {
   StrapiQuery.instance();
+  StrapiQuery();
   StrapiQuery.params(
       {Map<String, dynamic>? filters = const {},
       String? locale,
@@ -108,7 +109,7 @@ class StrapiQuery {
     return this;
   }
 
-  StrapiQuery populate({List<String> populates = const [], all = false}) {
+  StrapiQuery populate(populates, {bool all = false}) {
     if (all) {
       _populates = ['*'];
     } else {

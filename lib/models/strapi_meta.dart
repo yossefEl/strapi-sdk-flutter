@@ -1,37 +1,9 @@
-import 'strapi_document.dart';
-
-class StrapiCollection<T> {
-  late List<StrapiDocument> data;
-  late _StrapiMeta meta;
-
-  StrapiCollection({
-    required this.data,
-    required this.meta,
-  });
-
-  factory StrapiCollection.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic> json) converter,
-  ) {
-    return StrapiCollection(
-      data: List.from(
-        json["data"].map(
-          (item) => StrapiDocument.fromJson(item, converter),
-        ),
-      ),
-      meta: _StrapiMeta.fromJson(
-        json["meta"],
-      ),
-    );
-  }
-}
-
-class _StrapiMeta {
+class StrapiMeta {
   _StrapiPagination? _pagination = _StrapiPagination.empty();
   _StrapiPagination? get pagination => _pagination;
 
-  _StrapiMeta();
-  _StrapiMeta.fromJson(Map<String, dynamic> json) {
+  StrapiMeta();
+  StrapiMeta.fromJson(Map<String, dynamic> json) {
     _pagination =
         json.containsKey('pagination') ? _StrapiPagination.fromJson(json['pagination']) : null;
   }

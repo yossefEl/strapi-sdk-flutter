@@ -1,5 +1,5 @@
 class StrapiError {
-  final String status;
+  final int status;
   final String name;
   final String message;
   final Map<String, dynamic> details;
@@ -15,4 +15,25 @@ class StrapiError {
         message: json["message"],
         details: json["details"],
       );
+
+  StrapiError.fromClient(
+      {int status = 400,
+      String name = 'general',
+      String message = 'Something went wrong',
+      details = const {}})
+      : this(
+          status: status,
+          name: name,
+          message: message,
+          details: details,
+        );
+
+  toJson() {
+    return {
+      "status": status,
+      "name": name,
+      "message": message,
+      "details": details,
+    };
+  }
 }

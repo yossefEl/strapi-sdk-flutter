@@ -13,7 +13,7 @@ class StrapiError {
         status: json["status"],
         name: json["name"],
         message: json["message"],
-        details: json["details"],
+        details: json["details"] ?? {},
       );
 
   StrapiError.fromClient(

@@ -15,6 +15,7 @@ export 'models/strapi_base_user.dart';
 export 'models/strapi_configuration.dart';
 export 'models/strapi_query.dart';
 export 'models/strapi_meta.dart';
+export 'models/strapi_filter.dart';
 
 class Strapi {
   Strapi._(String endpoint, String? apiToken, {StrapiConfirgutation? confirgutation}) {
@@ -61,18 +62,22 @@ class Strapi {
   http.Response get response => _response;
 
   //methos
-  Uri __getEndpoint(String collection, {String? documentId}) {
+  Uri __getEndpoint(String collection, {String? documentId, StrapiQuery? query}) {
+    String _url = '$_endpoint/$collection';
     if (documentId != null) {
-      return Uri.parse('$_endpoint/$collection/$documentId');
+      _url = '$_url/$documentId';
     }
-    return Uri.parse('$_endpoint/$collection');
+    if (query != null) {
+      _url = '$_url?${query.toQueryParams()}';
+    }
+    return Uri.parse(_url);
   }
 
   void __hanldeError(http.Response response) {
     final _json = json.decode(response.body);
     // try {
     if (_json is Map && _json.containsKey('error')) {
-      log("i'm inside the error");
+      log("i'm inside the error ${_json['error']}");
       _error = StrapiError.fromJson(_json['error']);
       log('error instance: ${_error?.toJson()}');
     } else {
@@ -113,11 +118,18 @@ class Strapi {
   // find
   Future<List<T>?>? find<T>(collection,
       {StrapiQuery? query, required T Function(Map<String, dynamic> json) converter}) async {
-    final Uri url = __getEndpoint(collection);
+    final Uri url = __getEndpoint(collection, query: query);
     _response = await http.get(url);
     if (response.statusCode == 200) {
       final decodedJson = json.decode(response.body);
-      return decodedJson.map((item) => converter(item)).toList();
+      if (decodedJson is Map && decodedJson.containsKey('data')) {
+        List<T> _result = <T>[];
+        for (final item in decodedJson['data']) {
+          _result.add(converter(item));
+        }
+        return _result;
+      }
+      return <T>[];
     }
     __hanldeError(response);
     return null;
@@ -212,8 +224,6 @@ class Strapi {
   // login
   Future<bool> login({required String identifier, required String password}) async {
     final Uri url = Uri.parse('$_endpoint/auth/local');
-    final headers = await _confirgutation.headers;
-    print(headers.toString());
     _response = await http.post(
       url,
       body: json.encode({

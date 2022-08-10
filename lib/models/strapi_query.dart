@@ -1,5 +1,8 @@
-import 'package:strapi_sdk_flutter/models/strapi_file.dart';
+import 'dart:developer';
 
+import '/helper/utils/functions.dart';
+import '/helper/utils/query_generator.dart';
+import '/models/strapi_file.dart';
 import '/helper/enums/strapi_publication_state.dart';
 import 'strapi_filter.dart';
 
@@ -15,15 +18,13 @@ class StrapiQuery {
       List<String>? populates = const [],
       List<String> sorts = const [],
       String? orderBy,
-      String? paginate}) {
+      Map<String, dynamic>? paginate}) {
     _filters = StrapiFilter.params(filters: filters ?? {});
     _locale = locale;
     _publicationState = publicationState;
     _fields = fields ?? [];
-    _files = files ?? [];
     _populates = populates ?? [];
     _sorts = sorts;
-    _orderBy = orderBy;
     _paginate = paginate;
   }
   StrapiQuery.json(Map<String, dynamic> json) {
@@ -43,22 +44,18 @@ class StrapiQuery {
   String? _locale;
   StrapiPublicationState _publicationState = StrapiPublicationState.none;
   List<String> _fields = [];
-  List<StrapiFile> _files = const [];
-  List<String> _populates = [];
+  List<dynamic> _populates = [];
   List<String> _sorts = [];
-  String? _orderBy = 'asc';
-  String? _paginate;
+  Map<String, dynamic>? _paginate;
 
   // getters
   StrapiFilter? get filters => _filters;
-  String? get locale => _locale;
+  String get locale => _locale ?? '';
   StrapiPublicationState get publicationState => _publicationState;
   List<String> get fields => _fields;
-  List<StrapiFile>? get files => _files;
-  List<String> get populates => _populates;
+  List<dynamic> get populates => _populates;
   List<String> get sorts => _sorts;
-  String? get orderBy => _orderBy;
-  String? get paginate => _paginate;
+  Map<String, dynamic> get paginate => _paginate ?? {};
 
   //methods
   StrapiQuery filterWith(StrapiFilter filter) {
@@ -66,7 +63,7 @@ class StrapiQuery {
     return this;
   }
 
-  StrapiQuery forLocale(String? locale) {
+  StrapiQuery ofLocale(String? locale) {
     _locale = locale;
     return this;
   }
@@ -76,7 +73,7 @@ class StrapiQuery {
     return this;
   }
 
-  StrapiQuery withFields({List<String> fields = const [], bool all = false}) {
+  StrapiQuery select({List<String> fields = const [], bool all = false}) {
     if (all) {
       _fields = ['*'];
     } else {
@@ -85,52 +82,32 @@ class StrapiQuery {
     return this;
   }
 
-  StrapiQuery withFiles({List<StrapiFile> files = const []}) {
-    _files = files;
-    return this;
-  }
-
-  StrapiQuery addFile(StrapiFile file) {
-    _files.add(file);
-    return this;
-  }
-
-  StrapiQuery removeFile(StrapiFile file) {
-    _files.remove(file);
-    return this;
-  }
-
-  StrapiQuery removeWithName(String name) {
-    for (final file in _files) {
-      if (file.name == name) {
-        _files.remove(file);
+  StrapiQuery populate(dynamic populate) {
+    if (populate != null) {
+      if (populate is String || populate is Map) {
+        _populates = [populate];
+      }
+      if (populate is List) {
+        _populates = populate;
       }
     }
     return this;
   }
 
-  StrapiQuery populate(populates, {bool all = false}) {
-    if (all) {
-      _populates = ['*'];
-    } else {
-      _populates = populates;
-    }
-    return this;
-  }
-
-  StrapiQuery sortBy({List<String> sorts = const [], all = false}) {
+  StrapiQuery sortBy(List<String> sorts) {
     _sorts = sorts;
     return this;
   }
 
-  // order by
-  StrapiQuery orderAllBy(String order) {
-    _orderBy = order;
-    return this;
-  }
-
   StrapiQuery orderFieldBy(String field, String direction) {
-    _sorts.add('$field $direction');
+    for (int i = 0; i < _sorts.length; i++) {
+      if (_sorts[i].contains(field)) {
+        _sorts[i] = _sorts[i].replaceAll(':asc', '').replaceAll(':desc', '').trim() +
+            ':' +
+            direction.replaceAll(':', '');
+        break;
+      }
+    }
     return this;
   }
 
@@ -140,9 +117,7 @@ class StrapiQuery {
     int pageSize = 25,
     bool withCount = true,
   }) {
-    // pagination[page]=1&pagination[pageSize]=10
-    _paginate =
-        'pagination[page]=$page&pagination[pageSize]=$pageSize&pagination[withCount]=$withCount';
+    _paginate = {'page': page, 'pageSize': pageSize, 'withCount': withCount};
     return this;
   }
 
@@ -151,16 +126,45 @@ class StrapiQuery {
     int limit = 25,
     bool withCount = true,
   }) {
-    // pagination[offset]=0&pagination[limit]=10
-    _paginate =
-        'pagination[start]=$start&pagination[limit]=$limit&pagination[withCount]=$withCount';
+    _paginate = {'offset': start, 'limit': limit, 'withCount': withCount};
     return this;
   }
 
-  String getAsQueryParams() {
+  toMap() {
+    var json = {};
+    if (filters != null && filters!.filters.isNotEmpty) json['filters'] = filters?.filters;
+    if (locale.isNotEmpty) json['locale'] = locale;
+    if (publicationState != StrapiPublicationState.none) {
+      json['publicationState'] =
+          publicationState == StrapiPublicationState.live ? 'live' : 'preview';
+    }
+    if (_fields.isNotEmpty) {
+      if (_fields.contains('*')) {
+        json['fields'] = '*';
+      } else {
+        json['fields'] = list2Map(_fields);
+      }
+    }
+    if (_populates.isNotEmpty) {
+      if (_populates.contains('*')) {
+        json['populate'] = '*';
+      } else {
+        json['populate'] = list2Map(_populates);
+      }
+    }
+    if (_sorts.isNotEmpty) json['sort'] = list2Map(_sorts);
+    if (paginate.isNotEmpty) json['pagination'] = _paginate;
+    return json;
+  }
+
+  String toQueryParams() {
     if (_alreadyQuery) return _query;
+    _query = QueryGenerator.objectToQueryString(toMap());
     return _query;
   }
 
-  _makeQueryFromJson(json) {}
+  _makeQueryFromJson(json) {
+    _query = QueryGenerator.objectToQueryString(json, sanitize: false);
+    _alreadyQuery = true;
+  }
 }

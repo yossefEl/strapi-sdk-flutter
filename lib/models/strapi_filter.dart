@@ -1,4 +1,6 @@
 import 'dart:convert' show json;
+import '/helper/utils/functions.dart';
+import '/helper/utils/query_generator.dart';
 
 extension Operation on Map {
   insertOperation(String key, String operation, dynamic value) {
@@ -10,9 +12,9 @@ extension Operation on Map {
 }
 
 class StrapiFilter {
-  StrapiFilter(){
-    _filters= const [];
-  };
+  StrapiFilter() {
+    _filters = {};
+  }
   StrapiFilter.instance() {
     _filters = const {};
   }
@@ -72,14 +74,16 @@ class StrapiFilter {
   }
 
   // $in	Included in an array
-  StrapiFilter whereIn(String field, dynamic value) {
-    _filters.insertOperation(field, '\$in', value);
+  StrapiFilter whereIn(String field, List values) {
+    assert(values.isNotEmpty);
+    _filters.insertOperation(field, '\$in', list2Map(values));
     return this;
   }
 
   // $notIn	Not included in an array
-  StrapiFilter whereNotIn(String field, dynamic value) {
-    _filters.insertOperation(field, '\$notIn', value);
+  StrapiFilter whereNotIn(String field, List values) {
+    assert(values.isNotEmpty);
+    _filters.insertOperation(field, '\$notIn', list2Map(values));
     return this;
   }
 
@@ -120,8 +124,9 @@ class StrapiFilter {
   }
 
   // $between	Is between
-  StrapiFilter whereBetween(String field, dynamic value) {
-    _filters.insertOperation(field, '\$between', value);
+  StrapiFilter whereBetween(String field, List values) {
+    assert(values.length == 2);
+    _filters.insertOperation(field, '\$between', list2Map(values));
     return this;
   }
 
@@ -158,7 +163,7 @@ class StrapiFilter {
     return json.encode(_filters);
   }
 
-  toMap() {
-    return _filters;
+  toQueryParams() {
+    return QueryGenerator.objectToQueryString({'filters': _filters});
   }
 }

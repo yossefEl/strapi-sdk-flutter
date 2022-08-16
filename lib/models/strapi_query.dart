@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import '/helper/utils/functions.dart';
 import '/helper/utils/query_generator.dart';
 import '/models/strapi_file.dart';
@@ -100,13 +98,18 @@ class StrapiQuery {
   }
 
   StrapiQuery orderFieldBy(String field, String direction) {
+    bool exist = false;
     for (int i = 0; i < _sorts.length; i++) {
       if (_sorts[i].contains(field)) {
         _sorts[i] = _sorts[i].replaceAll(':asc', '').replaceAll(':desc', '').trim() +
             ':' +
             direction.replaceAll(':', '');
+        exist = true;
         break;
       }
+    }
+    if (!exist) {
+      _sorts.add('$field:$direction');
     }
     return this;
   }

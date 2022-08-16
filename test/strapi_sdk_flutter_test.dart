@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:strapi_sdk_flutter/models/strapi_filter.dart';
 import 'package:strapi_sdk_flutter/strapi_sdk_flutter.dart';
 
 void main() {

@@ -31,8 +31,8 @@ class Strapi {
     return _strapi;
   }
 
-  static void init(
-      {required String endpoint, String? apiToken, StrapiConfirgutation? confirgutation}) {
+  static Future<void> init(
+      {required String endpoint, String? apiToken, StrapiConfirgutation? confirgutation}) async {
     assert(endpoint != '');
     if (endpoint.endsWith('/')) {
       endpoint = endpoint.substring(0, endpoint.length - 1);
@@ -41,6 +41,7 @@ class Strapi {
     _apiToken = apiToken;
     _strapi =
         Strapi._(_endpoint, apiToken, confirgutation: confirgutation ?? StrapiConfirgutation());
+    instance.fetchUser();
   }
 
   static late String _endpoint;
@@ -88,9 +89,16 @@ class Strapi {
     // }
   }
 
+  void _init() {
+    _error = null;
+    _response = http.Response('{}', 400);
+    query = StrapiQuery.instance();
+  }
+
   Future request(method, String url,
       [successStatusCode = 200, fields = const {}, files = const [], headers = const {}]) async {
     try {
+      _init();
       http.StreamedResponse? response;
       final request = http.MultipartRequest("POST", Uri.parse(url));
       request.fields.addAll(fields);
@@ -118,8 +126,10 @@ class Strapi {
   // find
   Future<List<T>?>? find<T>(collection,
       {StrapiQuery? query, required T Function(Map<String, dynamic> json) converter}) async {
+    _init();
     final Uri url = __getEndpoint(collection, query: query);
-    _response = await http.get(url);
+    final headers = await _confirgutation.headers;
+    _response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
       final decodedJson = json.decode(response.body);
       if (decodedJson is Map && decodedJson.containsKey('data')) {
@@ -138,6 +148,7 @@ class Strapi {
   // find One
   Future<T?> findOne<T>(collection,
       {String? documentId, required T Function(Map<String, dynamic> json) converter}) async {
+    _init();
     final Uri url = __getEndpoint(collection, documentId: documentId);
     _response = await http.get(url, headers: await _confirgutation.headers);
     if (response.statusCode == 200) {
@@ -150,6 +161,7 @@ class Strapi {
   // create
   Future<T?> create<T>(String collection,
       {Map<String, dynamic>? data, T Function(Map<String, dynamic> json)? converter}) async {
+    _init();
     final Uri url = __getEndpoint(collection);
 
     _response = await http.post(
@@ -171,6 +183,7 @@ class Strapi {
   Future<T?> update<T>(String collection, String documentId,
       {Map<String, dynamic>? data,
       required T Function(Map<String, dynamic> json) converter}) async {
+    _init();
     final Uri url = __getEndpoint(collection, documentId: documentId);
     _response = await http.put(
       url,
@@ -186,6 +199,7 @@ class Strapi {
 
   // delete
   Future<bool> delete(String collection, String documentId) async {
+    _init();
     final Uri url = __getEndpoint(collection, documentId: documentId);
     _response = await http.delete(
       url,
@@ -200,6 +214,7 @@ class Strapi {
 
   // register : registers a user and sets the token
   Future<bool> register(String email, String password) async {
+    _init();
     final Uri url = Uri.parse('$_endpoint/auth/local/register');
     _response = await http.post(
       url,
@@ -223,6 +238,7 @@ class Strapi {
 
   // login
   Future<bool> login({required String identifier, required String password}) async {
+    _init();
     final Uri url = Uri.parse('$_endpoint/auth/local');
     _response = await http.post(
       url,
@@ -247,7 +263,9 @@ class Strapi {
 
   // forgotPassword
   Future<bool> forgotPassword({required String email}) async {
+    _init();
     final Uri url = Uri.parse('$_endpoint/auth/forgot-password');
+    log('email: $email');
     _response = await http.post(
       url,
       body: json.encode({
@@ -267,6 +285,7 @@ class Strapi {
       {required String code,
       required String password,
       required String passwordConfirmation}) async {
+    _init();
     final Uri url = Uri.parse('$_endpoint/auth/reset-password');
     _response = await http.post(
       url,
@@ -287,7 +306,8 @@ class Strapi {
   // sendEmailConfirmation
   Future<bool> sendEmailConfirmation(
       {required String email, required String confirmationUrl}) async {
-    final Uri url = Uri.parse('$_endpoint/auth/email-confirmatio');
+    _init();
+    final Uri url = Uri.parse('$_endpoint/auth/email-confirmation');
     _response = await http.post(
       url,
       body: json.encode({
@@ -310,6 +330,7 @@ class Strapi {
 
   //logout
   Future<bool> logout() async {
+    _init();
     await AuthStorage.instance.deleteToken();
     _user = null;
     _confirgutation.setHeaders = await _confirgutation.headers
@@ -319,6 +340,7 @@ class Strapi {
 
   // fetchUser
   Future<bool> fetchUser({String? populates}) async {
+    _init();
     String __url = '$_endpoint/users/me';
     if (populates != null) {
       __url += '?populate=$populates';

@@ -59,7 +59,7 @@ class Strapi {
   StrapiError? get error => _error;
   StrapiUser? get user => _user;
   bool get isLogged => _user != null;
-  get client => http.Client();
+  http.Client get client => http.Client();
   http.Response get response => _response;
 
   //methos

@@ -74,19 +74,17 @@ class Strapi {
     return Uri.parse(_url);
   }
 
-  void __hanldeError(http.Response response) {
+  void hanldeError(http.Response response) {
     final _json = json.decode(response.body);
-    // try {
-    if (_json is Map && _json.containsKey('error')) {
-      log("i'm inside the error ${_json['error']}");
-      _error = StrapiError.fromJson(_json['error']);
-      log('error instance: ${_error?.toJson()}');
-    } else {
-      _error = null;
+    try {
+      if (_json is Map && _json.containsKey('error')) {
+        _error = StrapiError.fromJson(_json['error']);
+      } else {
+        _error = null;
+      }
+    } catch (e) {
+      _error = StrapiError.fromClient();
     }
-    // } catch (e) {
-    //   _error = null;
-    // }
   }
 
   void _init() {
@@ -141,7 +139,7 @@ class Strapi {
       }
       return <T>[];
     }
-    __hanldeError(response);
+    hanldeError(response);
     return null;
   }
 
@@ -154,7 +152,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return converter(json.decode(response.body));
     }
-    __hanldeError(response);
+    hanldeError(response);
     return null;
   }
 
@@ -175,7 +173,7 @@ class Strapi {
       }
       return null;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return null;
   }
 
@@ -193,7 +191,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return converter(json.decode(response.body));
     }
-    __hanldeError(response);
+    hanldeError(response);
     return null;
   }
 
@@ -208,7 +206,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return true;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -232,7 +230,7 @@ class Strapi {
         return true;
       }
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -257,7 +255,7 @@ class Strapi {
       }
     }
     log(response.body.toString());
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -276,7 +274,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return true;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -299,7 +297,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return true;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -318,7 +316,7 @@ class Strapi {
     if (response.statusCode == 200) {
       return true;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 
@@ -360,7 +358,7 @@ class Strapi {
       _user = StrapiUser.fromJson(_json);
       return true;
     }
-    __hanldeError(response);
+    hanldeError(response);
     return false;
   }
 

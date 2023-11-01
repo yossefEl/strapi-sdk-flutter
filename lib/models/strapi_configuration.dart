@@ -11,7 +11,6 @@ class StrapiConfirgutation {
     }
   }
   late String _jwtStoreKey;
-
   Map<String, String> _headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

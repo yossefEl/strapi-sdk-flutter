@@ -10,7 +10,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+<<<<<<< HEAD
   flutter_secure_storage: ^6.0.0
+=======
+  flutter_secure_storage: ^5.1.0
+>>>>>>> 98875d834a9dd96d5f0d7aad277cec8c00b75a6a
   http: ^0.13.5
   jwt_decoder: ^2.0.1
 

@@ -15,6 +15,7 @@ export 'models/strapi_configuration.dart';
 export 'models/strapi_query.dart';
 export 'models/strapi_meta.dart';
 export 'models/strapi_filter.dart';
+
 //TO be upgraded
 class Strapi {
   Strapi._(String endpoint, String? apiToken, {StrapiConfirgutation? confirgutation}) {
